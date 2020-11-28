@@ -1,0 +1,93 @@
+<!doctype html>
+<html>
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <title>Hash Online</title>
+  </head>
+  <body>
+    
+    <div style="width: 700px;" class="container">
+        <h1 style="text-align: center; margin-top: 10px;"><b>Hash Online</b></h1>
+        
+        <!-- String Hash -->
+        <div class="row">
+            <h5><b>String Hash</b></h5>
+            <textarea style="width: 700px; margin: auto;" class="form-control" id="message" rows="5"></textarea>
+        </div>
+
+        <div class="row">
+            <select style="margin-top: 12px;" class="form-control" id="hashType">
+                <option value="sha1">SHA 1</option>
+                <option value="md5">MD5</option>
+                <option value="sha256">SHA 256</option>
+                <option value="sha512">SHA 512</option>
+                <option value="sha3-256">SHA-3 256</option>
+                <option value="sha3-512">SHA-3 512</option>
+              </select>
+            <input id="string-hash" class="btn btn-success" style="text-align: center; margin: auto; margin-top: 12px;" type="button" value="Hash">
+        </div>
+
+        <!-- File Hash -->
+        <div class="row">
+            <h5 style="margin-top: 10px;"><b>File Hash (with SHA 256)</b></h5>
+            <div style="width: 100%;">
+                <form id="upload-file" method="post" enctype="multipart/form-data">
+                    <input id="file" name="file" type="file" class="form-control-file">
+                </form>
+            </div>
+        </div>
+
+        <div class="row">
+            <input id="file-hash" class="btn btn-success" style="text-align: center; margin: auto; margin-top: 12px;" type="button" value="Hash">
+        </div>
+
+        <div style="margin-top: 10px;" class="row">
+            <h5 style="text-align: left;"><b>Hash Value</b></h5>
+            <textarea style="width: 700px; margin: auto;" class="form-control" id="hash-value" rows="2"></textarea>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+
+            $("#string-hash").click(function () {
+                $.ajax({
+                    url: "/api/get_hash_value",
+                    type: "POST",
+                    dataType: "json",
+                    data : {
+                        message: $("#message").val(),
+                        hashType: $("#hashType").val()
+                    }
+                }).done(function(result) {
+                    $("#hash-value").html(result.hash_value)
+                });
+            });
+
+            $('#file-hash').click(function() {
+                var form_data = new FormData($('#upload-file')[0]);
+                $.ajax({
+                    type: 'POST',
+                    url: '/api/get_file_hash_value',
+                    data: form_data,
+                    contentType: false,
+                    cache: false,
+                    processData: false,
+                    success: function(result) {
+                        $("#hash-value").html(result.hash_value)
+                    },
+                });
+            });
+
+        });
+    </script>
+</body>
+</html>
