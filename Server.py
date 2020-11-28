@@ -7,7 +7,7 @@ ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg'}
 
 # flask config
 app = Flask(__name__, template_folder="templates", static_folder='assets')
-app.config['UPLOAD_FOLDER'] = "/home/quocson/Documents/BaoMat/files"
+app.config['UPLOAD_FOLDER'] = "/home/quocson/Documents/Hashing/files"
 app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024
 
 def allowed_file(filename):
@@ -74,7 +74,7 @@ def get_hash_value():
     
     return {
         "code" : -1,
-        "hash_value" : "error"     
+        "hash_value" : "Error"     
     }
 
 @app.route('/api/get_file_hash_value', methods=["POST"])
@@ -83,7 +83,7 @@ def get_file_hash_value():
     if 'file' not in request.files:
         return {
             "code" : -1,
-            "hash_value" : "file not in request"     
+            "hash_value" : "File not in request"     
         }
 
     file = request.files['file']
@@ -92,7 +92,7 @@ def get_file_hash_value():
     if file.filename == '':
         return {
             "code" : -1,
-            "hash_value" : "file name is null"     
+            "hash_value" : "File name is null"     
         }
 
 
@@ -107,7 +107,59 @@ def get_file_hash_value():
                 "code" : 0,
                 "hash_value" : hash_value     
             }
+
+    else:
+        return {
+            "code" : -1,
+            "hash_value" : "Not support this type of file"
+        }
+
+@app.route('/api/check_integrity', methods=["POST"])
+def check_integrity():
+
+    check_sum = request.form.get("checksum")
+
+    if 'file' not in request.files:
+        return {
+            "code" : -1,
+            "hash_value" : "File not in request"     
+        }
+
+    file = request.files['file']
+    # if user does not select file, browser also
+    # submit an empty part without filename
+    if file.filename == '':
+        return {
+            "code" : -1,
+            "hash_value" : "File name is null"     
+        }
+
+
+    if file and allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+
+        with open(os.path.join(app.config['UPLOAD_FOLDER'], filename), "rb") as f:
+            hash_obj = SHA256.new(f.read())
+            hash_value = hash_obj.hexdigest().upper()
+            if hash_value == check_sum:
+                return {
+                    "code" : 0,
+                    "status" : "That file is data integrity"     
+                }
+            else:
+                return {
+                    "code" : -1,
+                    "status" : "That file is not data integrity"
+                }
+            
+
+    else:
+        return {
+            "code" : -1,
+            "hash_value" : "Not support this type of file"
+        }
     
 
 if __name__ == '__main__':
-    app.run(port="7200", debug=False)
+    app.run(port="7200", debug=True)

@@ -53,6 +53,24 @@
             <h5 style="text-align: left;"><b>Hash Value</b></h5>
             <textarea style="width: 700px; margin: auto;" class="form-control" id="hash-value" rows="2"></textarea>
         </div>
+
+        <div style="margin-top: 12px;" class="row">
+            <h5><b>Check data integrity</b></h5>
+            <div style="width: 100%;">
+                <form id="upload-file-integrity" method="post" enctype="multipart/form-data">
+                    <input id="integrity-file" name="file" type="file" class="form-control-file">
+                    <textarea style="width: 700px; margin: auto; margin-top: 10px;" placeholder="Enter SHA 256 checksum here" class="form-control" id="check-sum" rows="2"></textarea>
+                </form>
+                <p style="text-align: center; font-size: 20px; font-weight: bold; margin-top: 10px;" id="verify-text"></p>
+            </div>
+        </div>
+
+        <div class="row">
+            <input id="file-verify" class="btn btn-success" style="text-align: center; margin: auto;" type="button" value="Verify">
+        </div>
+
+        <footer class="fixed-bottom" style="text-align: center; background-color: black; font-size: 18px; color: white;"><b>https://github.com/quocsonnguyen/</b></footer>
+
     </div>
 
     <script>
@@ -83,6 +101,31 @@
                     processData: false,
                     success: function(result) {
                         $("#hash-value").html(result.hash_value)
+                    },
+                });
+            });
+
+            $('#file-verify').click(function() {
+                var form_data = new FormData($('#upload-file-integrity')[0]);
+                var checksum = $("#check-sum").val();
+
+                form_data.append("checksum", checksum)
+                
+                $.ajax({
+                    type: 'POST',
+                    url: '/api/check_integrity',
+                    data: form_data,
+                    contentType: false,
+                    cache: false,
+                    processData: false,
+                    success: function(result) {
+                        if (result.code === 0) {
+                            $("#verify-text").css("color", "green")
+                        }
+                        else {
+                            $("#verify-text").css("color", "red")
+                        }
+                        $("#verify-text").html(result.status)
                     },
                 });
             });
